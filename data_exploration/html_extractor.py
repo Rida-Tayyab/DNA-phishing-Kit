@@ -73,7 +73,10 @@ def extract_html_features(kit_root: Path, html_files: list) -> dict:
         if len(content) < 200:
             continue
             
-        soup = BeautifulSoup(content, "html.parser")
+        if len(content) > 300_000:
+            continue
+            
+        soup = BeautifulSoup(content, "lxml")
         pages_processed += 1
         
         title_tag = soup.find("title")

@@ -53,11 +53,11 @@ IP_LOGGING_PATTERNS = [
 ]
 
 TOKEN_PATTERNS = {
-    "md5_rand":     r'md5\s*\(\s*rand\s*\(',     # md5(rand()) — m1 style
-    "uniqid":       r'uniqid\s*\(',               # uniqid() 
-    "random_bytes": r'random_bytes\s*\(',          # modern secure random
-    "sha1_time":    r'sha1\s*\(\s*time\s*\(',     # sha1(time())
-    "bin2hex":      r'bin2hex\s*\(',               # bin2hex approach
+    "md5_rand":     r'md5\s*\(\s*rand\s*\(',     
+    "uniqid":       r'uniqid\s*\(',               
+    "random_bytes": r'random_bytes\s*\(',          
+    "sha1_time":    r'sha1\s*\(\s*time\s*\(',     
+    "bin2hex":      r'bin2hex\s*\(',               
 }
 
 CREDENTIAL_PATTERNS = {
@@ -105,6 +105,9 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
         if len(content.strip()) < 10:
             continue
 
+        if len(content) > 200_000:
+            content = content[:200_000] 
+
         php_file_count += 1
         php_line_count += content.count("\n")
         sizes.append(len(content))
@@ -120,7 +123,6 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
         if sizes else 0
     )
 
-    # Exfiltration
     telegram_hits = count_pattern_hits(
         all_content,
         TELEGRAM_PATTERNS
@@ -148,7 +150,6 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
         )
     )
 
-    # Author fingerprints
     chatids_found = list(
         set(
             re.findall(
@@ -166,7 +167,6 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
             token_style = style
             break
 
-    # Anti-analysis
     has_bot_detection = (
         count_pattern_hits(
             all_content,
@@ -189,7 +189,6 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
         )
     )
 
-    # Redirects
     redirect_targets = []
 
     for pattern in REDIRECT_PATTERNS:
@@ -220,7 +219,6 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
         for target in redirect_targets
     )
 
-    # Credential targets
     credential_types = set()
 
     for name, pattern in CREDENTIAL_PATTERNS.items():
@@ -231,7 +229,6 @@ def extract_php_features(kit_root: Path, php_files: list) -> dict:
         ):
             credential_types.add(name)
 
-    # Rough sophistication estimate
     sophistication = 0
 
     if uses_telegram:
@@ -319,13 +316,11 @@ def _empty_php_features() -> dict:
         "avg_php_file_length": 0.0,
     }
 
-
-# ── TEST ON 5 KITS ────────────────────────────────────
 if __name__ == "__main__":
     with open("data_exploration/dataset_manifest.json") as f:
         manifest = json.load(f)
 
-    # Test on kits we already know about
+    
     test_families = ["m1", "mtb.com-bank", "hjukiujyhgtrvfcdx", 
                      "volks", "raiffeisenbank"]
     test_kits = [
