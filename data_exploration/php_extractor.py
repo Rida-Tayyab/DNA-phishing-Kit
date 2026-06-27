@@ -2,61 +2,56 @@ import re
 import json
 from pathlib import Path
 
-# ── PATTERNS WE'RE LOOKING FOR ───────────────────────
-# These are the behavioural fingerprints we saw in real kit PHP
 
-# Exfiltration method patterns
 TELEGRAM_PATTERNS = [
-    r'api\.telegram\.org',           # Telegram API URL
-    r'sendMessage',                   # Telegram send function
-    r'\$token\s*=',                   # bot token variable
-    r'\$chatid\s*=',                  # chat ID variable
-    r'curl_init\(\)',                  # curl usage (Telegram uses curl)
-    r'CURLOPT_URL',                   # curl option
+    r'api\.telegram\.org',  
+    r'sendMessage',                
+    r'\$token\s*=',            
+    r'\$chatid\s*=',         
+    r'curl_init\(\)',                  
+    r'CURLOPT_URL',     
 ]
 
 EMAIL_PATTERNS = [
-    r'mail\s*\(',                     # PHP mail() function
-    r'\$Receive_email\s*=',           # common variable name
+    r'mail\s*\(',               
+    r'\$Receive_email\s*=',      
     r'\$receive_mail\s*=',
     r'\$email_to\s*=',
-    r'\$to\s*=\s*["\']',             # $to = "email"
+    r'\$to\s*=\s*["\']', 
     r'\$admin_email\s*=',
-    r'\$hacker\s*=',                  # some kits literally name it this
-    r'wp_mail\s*\(',                  # WordPress mail
+    r'\$hacker\s*=',                
+    r'wp_mail\s*\(',       
 ]
 
 FILE_EXFIL_PATTERNS = [
-    r'file_put_contents\s*\(',        # write credentials to file
-    r'fwrite\s*\(',                   # file write
-    r'fopen\s*\(.+["\']w["\']',      # open file for writing
+    r'file_put_contents\s*\(',        
+    r'fwrite\s*\(',                   
+    r'fopen\s*\(.+["\']w["\']',      
 ]
 
-# Redirect patterns — where victim goes after submitting
 REDIRECT_PATTERNS = [
-    r'\$redirect\s*=\s*["\'](.+?)["\']',      # $redirect = "url"
-    r'header\s*\(\s*["\']Location:\s*(.+?)["\']',  # header redirect
-    r'window\.location\s*=',                   # JS redirect from PHP
+    r'\$redirect\s*=\s*["\'](.+?)["\']',     
+    r'header\s*\(\s*["\']Location:\s*(.+?)["\']'
+    r'window\.location\s*=',                   
 ]
 
 # Anti-analysis patterns
 BOT_DETECTION_PATTERNS = [
-    r'HTTP_USER_AGENT',               # checking user agent
-    r'bot|crawler|spider|curl',       # blocking bots by name
-    r'getenv\s*\(\s*["\']HTTP_',     # reading HTTP headers
-    r'geoip_country',                 # country-based filtering
-    r'ip_address',                    # IP logging
-    r'\$_SERVER\[.+USER_AGENT',      # user agent check
+    r'HTTP_USER_AGENT',               
+    r'bot|crawler|spider|curl',       
+    r'getenv\s*\(\s*["\']HTTP_',     
+    r'geoip_country',                 
+    r'ip_address',            
+    r'\$_SERVER\[.+USER_AGENT',
 ]
 
 # IP logging patterns
 IP_LOGGING_PATTERNS = [
-    r'REMOTE_ADDR',                   # victim IP capture
-    r'HTTP_X_FORWARDED_FOR',         # proxy IP capture  
-    r'gethostbyaddr',                 # reverse DNS lookup on victim
+    r'REMOTE_ADDR',                   
+    r'HTTP_X_FORWARDED_FOR',           
+    r'gethostbyaddr',                 
 ]
 
-# Session / token generation patterns — reveals coding style
 TOKEN_PATTERNS = {
     "md5_rand":     r'md5\s*\(\s*rand\s*\(',     # md5(rand()) — m1 style
     "uniqid":       r'uniqid\s*\(',               # uniqid() 
@@ -65,7 +60,6 @@ TOKEN_PATTERNS = {
     "bin2hex":      r'bin2hex\s*\(',               # bin2hex approach
 }
 
-# Credential variable names — reveals what data is being stolen
 CREDENTIAL_PATTERNS = {
     "password":   r'\$(pass|password|passwd|pwd|contraseña)',
     "email":      r'\$(email|mail|correo|username|user)',
@@ -86,169 +80,227 @@ def count_pattern_hits(content: str, patterns: list) -> int:
             hits += 1
     return hits
 
-
 def extract_php_features(kit_root: Path, php_files: list) -> dict:
-    """
-    Extract behavioural features from all PHP files in a kit.
-    This reveals HOW the kit works — the criminal's methodology.
-    """
+    """Extract behavioural features from a phishing kit's PHP backend."""
 
-    # ── Aggregate across all PHP files ───────────────
-    all_content = ""          # combined PHP source for pattern matching
-
-    uses_telegram      = False
-    uses_email         = False
-    uses_file_exfil    = False
-    uses_curl          = False
-
-    has_bot_detection  = False
-    has_ip_logging     = False
-    has_country_filter = False
-    has_redirect       = False
-
-    redirect_targets   = []   # where victims get redirected
-    chatids_found      = []   # Telegram chat IDs (author fingerprint)
-
-    credential_types_stolen = set()   # what data is being harvested
-    token_style             = "none"  # how session tokens are generated
-
-    php_file_count     = 0
-    php_line_count     = 0
-    avg_file_length    = 0
-
+    all_content = []
     sizes = []
+    php_file_count = 0
+    php_line_count = 0
 
     for rel_path in php_files:
-        full_path = kit_root / rel_path
+        path = kit_root / rel_path
 
-        if not full_path.exists():
+        if not path.exists():
             continue
 
         try:
-            content = full_path.read_text(encoding="utf-8", errors="ignore")
+            content = path.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
         except Exception:
             continue
 
-        if len(content) < 10:
+        if len(content.strip()) < 10:
             continue
 
         php_file_count += 1
         php_line_count += content.count("\n")
         sizes.append(len(content))
-        all_content += content + "\n"
+        all_content.append(content)
 
     if not all_content:
         return _empty_php_features()
 
-    avg_file_length = sum(sizes) / len(sizes) if sizes else 0
-    content_lower   = all_content.lower()
+    all_content = "\n".join(all_content)
 
-    # ── Exfiltration method detection ────────────────
-    telegram_hits = count_pattern_hits(all_content, TELEGRAM_PATTERNS)
-    email_hits    = count_pattern_hits(all_content, EMAIL_PATTERNS)
-    file_hits     = count_pattern_hits(all_content, FILE_EXFIL_PATTERNS)
-
-    uses_telegram   = telegram_hits >= 2   # need 2+ signals to confirm
-    uses_email      = email_hits    >= 1
-    uses_file_exfil = file_hits     >= 1
-    uses_curl       = bool(re.search(r'curl_init\s*\(', all_content, re.I))
-
-    # ── Extract Telegram chat IDs ─────────────────────
-    # These are author fingerprints left in the code
-    chatid_matches = re.findall(
-        r'\$chatid\s*=\s*["\'](\d+)["\']', 
-        all_content, re.IGNORECASE
-    )
-    chatids_found = list(set(chatid_matches))
-
-    # ── Anti-analysis detection ───────────────────────
-    bot_hits     = count_pattern_hits(all_content, BOT_DETECTION_PATTERNS)
-    ip_hits      = count_pattern_hits(all_content, IP_LOGGING_PATTERNS)
-
-    has_bot_detection  = bot_hits >= 1
-    has_ip_logging     = ip_hits  >= 1
-    has_country_filter = bool(re.search(
-        r'geoip|country_code|\$_country', all_content, re.IGNORECASE
-    ))
-
-    # ── Redirect target extraction ────────────────────
-    for pattern in REDIRECT_PATTERNS:
-        matches = re.findall(pattern, all_content, re.IGNORECASE)
-        redirect_targets.extend(matches)
-
-    has_redirect          = len(redirect_targets) > 0
-    redirects_to_legit    = any(
-        any(brand in r.lower() for brand in [
-            "google", "paypal", "microsoft", "facebook",
-            "amazon", "apple", "bankofamerica", "chase"
-        ])
-        for r in redirect_targets
+    avg_file_length = (
+        sum(sizes) / len(sizes)
+        if sizes else 0
     )
 
-    # ── Token generation style ─────────────────────────
-    # Reveals the author's coding habits
-    for style_name, pattern in TOKEN_PATTERNS.items():
+    # Exfiltration
+    telegram_hits = count_pattern_hits(
+        all_content,
+        TELEGRAM_PATTERNS
+    )
+
+    email_hits = count_pattern_hits(
+        all_content,
+        EMAIL_PATTERNS
+    )
+
+    file_hits = count_pattern_hits(
+        all_content,
+        FILE_EXFIL_PATTERNS
+    )
+
+    uses_telegram = telegram_hits >= 2
+    uses_email = email_hits >= 1
+    uses_file_exfil = file_hits >= 1
+
+    uses_curl = bool(
+        re.search(
+            r"curl_init\s*\(",
+            all_content,
+            re.IGNORECASE
+        )
+    )
+
+    # Author fingerprints
+    chatids_found = list(
+        set(
+            re.findall(
+                r'\$chatid\s*=\s*["\'](\d+)["\']',
+                all_content,
+                re.IGNORECASE
+            )
+        )
+    )
+
+    token_style = "none"
+
+    for style, pattern in TOKEN_PATTERNS.items():
         if re.search(pattern, all_content, re.IGNORECASE):
-            token_style = style_name
+            token_style = style
             break
 
-    # ── What credentials are being stolen ─────────────
-    for cred_type, pattern in CREDENTIAL_PATTERNS.items():
-        if re.search(pattern, all_content, re.IGNORECASE):
-            credential_types_stolen.add(cred_type)
+    # Anti-analysis
+    has_bot_detection = (
+        count_pattern_hits(
+            all_content,
+            BOT_DETECTION_PATTERNS
+        ) > 0
+    )
 
-    # ── Sophistication score (0-10) ───────────────────
-    # Higher = more sophisticated kit author
+    has_ip_logging = (
+        count_pattern_hits(
+            all_content,
+            IP_LOGGING_PATTERNS
+        ) > 0
+    )
+
+    has_country_filter = bool(
+        re.search(
+            r"geoip|country_code|\$_country",
+            all_content,
+            re.IGNORECASE
+        )
+    )
+
+    # Redirects
+    redirect_targets = []
+
+    for pattern in REDIRECT_PATTERNS:
+        redirect_targets.extend(
+            re.findall(
+                pattern,
+                all_content,
+                re.IGNORECASE
+            )
+        )
+
+    has_redirect = len(redirect_targets) > 0
+
+    redirects_to_legit = any(
+        any(
+            brand in target.lower()
+            for brand in [
+                "google",
+                "paypal",
+                "microsoft",
+                "facebook",
+                "amazon",
+                "apple",
+                "bankofamerica",
+                "chase",
+            ]
+        )
+        for target in redirect_targets
+    )
+
+    # Credential targets
+    credential_types = set()
+
+    for name, pattern in CREDENTIAL_PATTERNS.items():
+        if re.search(
+            pattern,
+            all_content,
+            re.IGNORECASE
+        ):
+            credential_types.add(name)
+
+    # Rough sophistication estimate
     sophistication = 0
-    if uses_telegram:        sophistication += 2   # tech-savvy exfil
-    if uses_curl:            sophistication += 1   # knows curl
-    if has_bot_detection:    sophistication += 2   # evasion awareness
-    if has_country_filter:   sophistication += 2   # targeted attacks
-    if has_ip_logging:       sophistication += 1   # operational security
-    if token_style != "none": sophistication += 1  # session management
-    if "cvv" in credential_types_stolen: sophistication += 1  # card fraud
+
+    if uses_telegram:
+        sophistication += 2
+
+    if uses_curl:
+        sophistication += 1
+
+    if has_bot_detection:
+        sophistication += 2
+
+    if has_country_filter:
+        sophistication += 2
+
+    if has_ip_logging:
+        sophistication += 1
+
+    if token_style != "none":
+        sophistication += 1
+
+    if "cvv" in credential_types:
+        sophistication += 1
+
+    if uses_telegram:
+        exfil_method = "telegram"
+    elif uses_email:
+        exfil_method = "email"
+    elif uses_file_exfil:
+        exfil_method = "file"
+    else:
+        exfil_method = "unknown"
 
     return {
-        # Exfiltration method — most important feature
-        "uses_telegram":        uses_telegram,
-        "uses_email":           uses_email,
-        "uses_file_exfil":      uses_file_exfil,
-        "uses_curl":            uses_curl,
-        "telegram_chat_ids":    chatids_found,
-        "exfil_method":         (
-            "telegram" if uses_telegram else
-            "email"    if uses_email    else
-            "file"     if uses_file_exfil else
-            "unknown"
+        "uses_telegram": uses_telegram,
+        "uses_email": uses_email,
+        "uses_file_exfil": uses_file_exfil,
+        "uses_curl": uses_curl,
+
+        "telegram_chat_ids": chatids_found,
+        "exfil_method": exfil_method,
+
+        "has_bot_detection": has_bot_detection,
+        "has_ip_logging": has_ip_logging,
+        "has_country_filter": has_country_filter,
+
+        "has_redirect": has_redirect,
+        "redirects_to_legit": redirects_to_legit,
+
+        "steals_password": "password" in credential_types,
+        "steals_card": "card_num" in credential_types,
+        "steals_cvv": "cvv" in credential_types,
+        "steals_otp": "otp" in credential_types,
+        "steals_dob": "dob" in credential_types,
+        "steals_ssn": "ssn" in credential_types,
+
+        "credential_type_count": len(
+            credential_types
         ),
 
-        # Anti-analysis
-        "has_bot_detection":    has_bot_detection,
-        "has_ip_logging":       has_ip_logging,
-        "has_country_filter":   has_country_filter,
-        "has_redirect":         has_redirect,
-        "redirects_to_legit":   redirects_to_legit,
-
-        # What's stolen
-        "steals_password":      "password" in credential_types_stolen,
-        "steals_card":          "card_num" in credential_types_stolen,
-        "steals_cvv":           "cvv"      in credential_types_stolen,
-        "steals_otp":           "otp"      in credential_types_stolen,
-        "steals_dob":           "dob"      in credential_types_stolen,
-        "steals_ssn":           "ssn"      in credential_types_stolen,
-        "credential_type_count": len(credential_types_stolen),
-
-        # Author style fingerprints
-        "token_style":          token_style,
+        "token_style": token_style,
         "sophistication_score": sophistication,
 
-        # File stats
-        "php_file_count":       php_file_count,
-        "php_line_count":       php_line_count,
-        "avg_php_file_length":  round(avg_file_length, 1),
+        "php_file_count": php_file_count,
+        "php_line_count": php_line_count,
+        "avg_php_file_length": round(
+            avg_file_length,
+            1
+        ),
     }
-
-
 def _empty_php_features() -> dict:
     """Return zeroed features for kits with no readable PHP."""
     return {
