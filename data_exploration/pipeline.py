@@ -9,6 +9,7 @@ warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 from html_extractor import extract_html_features
 from php_extractor import extract_php_features
 from structural_features_extract import extract_structural_features
+from js_extractor import extract_js_features
 
 
 def main():
@@ -40,14 +41,20 @@ def main():
                 f for f in kit.get("files", [])
                 if f.lower().endswith(".php")
             ]
+            js_files = [
+                f for f in kit.get("files", [])
+                if f.lower().endswith(".js")
+            ]
 
+            js_features = extract_js_features(kit_root, js_files)
             html_features = extract_html_features(kit_root, html_files)
             php_features = extract_php_features(kit_root, php_files)
             structural_features = extract_structural_features(kit)
      
             combined_features = {
                 **html_features,
-                **php_features, 
+                **php_features,
+                **js_features, 
                 **structural_features
             }
 
