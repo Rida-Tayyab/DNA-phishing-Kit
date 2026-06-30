@@ -4,7 +4,7 @@ import faiss
 from pathlib import Path
 from collections import Counter
 
-from embedders.embedder import build_feature_vector
+from embedders.embedder import build_feature_vector, normalize_vector
 from embedders.text_embedder import embed_kit_source
 
 # Load index and metadata at module level
@@ -13,10 +13,15 @@ index = faiss.read_index("kit_index.faiss")
 with open("index_metadata.json") as f:
     metadata = json.load(f)
 
-with open("features.json") as f:
+with open("data_exploration/data/features.json") as f:
     features_data = json.load(f)
 
+with open("normalization_stats.json") as f:
+    norm_stats = json.load(f)
+
 kit_lookup = {item["index_id"]: item for item in metadata["kit_metadata"]}
+col_min = norm_stats["col_min"] 
+col_max = norm_stats["col_max"]
 
 
 def classify_kit(kit_root: Path, kit_manifest_entry: dict, exclude_hash: str = None) -> dict:
@@ -39,7 +44,9 @@ def classify_kit(kit_root: Path, kit_manifest_entry: dict, exclude_hash: str = N
     
     kit_features = features_data[kit_hash]
     
-    structured_vec = build_feature_vector(kit_features)
+    # Build raw structured vector, then normalize using saved stats
+    raw_structured_vec = build_feature_vector(kit_features)
+    structured_vec = normalize_vector(raw_structured_vec, col_min, col_max)
     text_vec = embed_kit_source(kit_root, kit_manifest_entry)
     
     hybrid_vec = np.concatenate([structured_vec, text_vec])

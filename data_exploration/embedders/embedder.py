@@ -1,6 +1,14 @@
 import json
 import numpy as np
 
+
+def normalize_vector(raw_vector, col_min, col_max):
+    """Normalize a single vector using saved min/max statistics."""
+    raw = np.array(raw_vector, dtype=np.float32)
+    col_range = np.array(col_max) - np.array(col_min)
+    col_range[col_range == 0] = 1  # avoid divide by zero
+    return (raw - np.array(col_min)) / col_range
+
 def build_feature_vector(kit: dict) -> list:
     """
     Convert one kit's feature dict into a numerical vector.
@@ -97,51 +105,70 @@ def build_feature_vector(kit: dict) -> list:
 def build_all_vectors(features_path: str) -> tuple:
     """
     Returns:
-        vectors: list of 55-dim lists
+        vectors: list of normalized 55-dim lists
         labels:  list of family names (same order)
         hashes:  list of kit hashes (same order)
+        col_min: min values per feature (for saving)
+        col_max: max values per feature (for saving)
     """
     # Load features data
     with open(features_path) as f:
         features_data = json.load(f)
     
-    vectors = []
+    raw_vectors = []
     labels = []
     hashes = []
     
+    # Step 1: Build all raw vectors first (unnormalized)
     for kit_hash, kit_data in features_data.items():
-        # Build feature vector
-        vector = build_feature_vector(kit_data)
-        
-        # Get family name and hash
+        raw_vector = build_feature_vector(kit_data)
         family = kit_data.get("kit_family", "unknown")
         
-        # Store in same order
-        vectors.append(vector)
+        raw_vectors.append(raw_vector)
         labels.append(family)
         hashes.append(kit_hash)
 
-    vectors_np = np.array(vectors, dtype=np.float32)
+    vectors_np = np.array(raw_vectors, dtype=np.float32)
 
-    # Normalize each column to 0-1 range
+    # Step 2: Compute col_min, col_max from the full batch
     col_min = vectors_np.min(axis=0)
     col_max = vectors_np.max(axis=0)
-    col_range = col_max - col_min
+    
+    # Step 3: Normalize each vector using those stats
+    normalized_vectors = []
+    for raw_vector in raw_vectors:
+        normalized_vector = normalize_vector(raw_vector, col_min, col_max)
+        normalized_vectors.append(normalized_vector.tolist())
 
-    # Avoid division by zero for constant columns
-    col_range[col_range == 0] = 1
+    return normalized_vectors, labels, hashes, col_min.tolist(), col_max.tolist()
 
-    vectors_normalized = (vectors_np - col_min) / col_range
 
-    return vectors_normalized.tolist(), labels, hashes
+def build_normalized_feature_vector(kit: dict) -> list:
+    """
+    Build and normalize a single feature vector using saved normalization parameters.
+    """
+    # Build raw vector
+    raw_vector = build_feature_vector(kit)
+    
+    # Load normalization parameters
+    with open("normalization_stats.json") as f:
+        stats = json.load(f)
+    
+    col_min = stats["col_min"]
+    col_max = stats["col_max"]
+    
+    # Apply same normalization as training data
+    normalized_vector = normalize_vector(raw_vector, col_min, col_max)
+    
+    return normalized_vector.tolist()
 
 
 def validate_vectors():
     """Validate the vector building process."""
     try:
-        vectors, labels, hashes = build_all_vectors("features.json")
+        vectors, labels, hashes, col_min, col_max = build_all_vectors("data_exploration/data/features.json")
     except FileNotFoundError:
-        vectors, labels, hashes = build_all_vectors("features_checkpoint.json")
+        vectors, labels, hashes, col_min, col_max = build_all_vectors("features_checkpoint.json")
     
     print("── Vector Building Validation ──")
     print(f"Total kits processed: {len(vectors)}")

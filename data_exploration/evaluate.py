@@ -10,10 +10,10 @@ from classifier import classify_kit
 def evaluate_classification(sample_size=200):
     """Evaluate classification accuracy on random sample of kits."""
     
-    with open("features.json") as f:
+    with open("data_exploration/data/features.json") as f:
         features_data = json.load(f)
     
-    with open("data_exploration/dataset_manifest.json") as f:
+    with open("data_exploration/data/dataset_manifest.json") as f:
         manifest_data = json.load(f)
     
     manifest_lookup = {kit["hash"]: kit for kit in manifest_data}
