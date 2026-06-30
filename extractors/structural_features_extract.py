@@ -60,7 +60,7 @@ def extract_structural_features(kit: dict) -> dict:
         "has_telegram": kit.get("has_telegram", False),
     }
 
-with open("data_exploration/dataset_manifest.json") as f:
+with open("data/dataset_manifest.json") as f:
     manifest = json.load(f)
 
 for kit in manifest[:5]:

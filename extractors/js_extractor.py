@@ -145,7 +145,7 @@ def _empty_js_features() -> dict:
 
 # Test on the 3 kits we examined
 if __name__ == "__main__":
-    with open("data_exploration/dataset_manifest.json") as f:
+    with open("data/dataset_manifest.json") as f:
         manifest = json.load(f)
     
     # Find the specific kits we peeked at

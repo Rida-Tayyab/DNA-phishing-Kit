@@ -14,7 +14,7 @@ from js_extractor import extract_js_features
 
 def main():
     print("Loading dataset manifest...")
-    with open("data_exploration/dataset_manifest.json") as f:
+    with open("data/dataset_manifest.json") as f:
         manifest = json.load(f)
     
     # Filter kits with useful_files >= 5
@@ -76,7 +76,7 @@ def main():
     
     # Save to features.json
     print(f"Saving {len(all_features)} kit features to features.json...")
-    with open("features.json", "w") as f:
+    with open("data/features.json", "w") as f:
         json.dump(all_features, f, indent=2)
     
     print("Pipeline complete!")

@@ -13,10 +13,10 @@ def build_hybrid_index():
     
     # Step 1: Load data files
     print("Loading data files...")
-    with open("data_exploration/data/features.json") as f:
+    with open("data/features.json") as f:
         features_data = json.load(f)
     
-    with open("data_exploration/data/dataset_manifest.json") as f:
+    with open("data/dataset_manifest.json") as f:
         manifest_data = json.load(f)
     
     # Build hash → manifest lookup
@@ -36,7 +36,7 @@ def build_hybrid_index():
         "col_min": col_min,
         "col_max": col_max
     }
-    with open("normalization_stats.json", "w") as f:
+    with open("data/normalization_stats.json", "w") as f:
         json.dump(norm_stats, f, indent=2)
     
     print("Normalization statistics saved to normalization_stats.json")

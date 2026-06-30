@@ -13,10 +13,10 @@ index = faiss.read_index("kit_index.faiss")
 with open("index_metadata.json") as f:
     metadata = json.load(f)
 
-with open("data_exploration/data/features.json") as f:
+with open("data/features.json") as f:
     features_data = json.load(f)
 
-with open("normalization_stats.json") as f:
+with open("data/normalization_stats.json") as f:
     norm_stats = json.load(f)
 
 kit_lookup = {item["index_id"]: item for item in metadata["kit_metadata"]}

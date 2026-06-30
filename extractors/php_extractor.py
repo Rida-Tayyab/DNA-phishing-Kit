@@ -317,7 +317,7 @@ def _empty_php_features() -> dict:
     }
 
 if __name__ == "__main__":
-    with open("data_exploration/dataset_manifest.json") as f:
+    with open("data/dataset_manifest.json") as f:
         manifest = json.load(f)
 
     

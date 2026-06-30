@@ -6,10 +6,10 @@ import statistics
 def load_features():
     """Load features from features.json or checkpoint."""
     try:
-        with open("features.json") as f:
+        with open("data/features.json") as f:
             return json.load(f)
     except FileNotFoundError:
-        with open("features_checkpoint.json") as f:
+        with open("data/features_checkpoint.json") as f:
             return json.load(f)
 
 

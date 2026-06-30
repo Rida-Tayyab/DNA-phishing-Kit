@@ -6,7 +6,7 @@ from pathlib import Path
 from html_extractor import extract_html_features
 
 print("Loading manifest...")
-with open("data_exploration/dataset_manifest.json") as f:
+with open("data/dataset_manifest.json") as f:
     manifest = json.load(f)
 
 # Filter out kits too sparse to be useful

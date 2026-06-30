@@ -222,7 +222,7 @@ def extract_html_features(kit_root: Path, html_files: list) -> dict:
 
 
 if __name__ == "__main__":
-    with open("data_exploration/dataset_manifest.json") as f:
+    with open("data/dataset_manifest.json") as f:
         manifest = json.load(f)
     
     test_kits = [

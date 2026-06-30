@@ -17,10 +17,10 @@ def check_real_duplicates(threshold=0.01):
     
     # Load FAISS index
     print("Loading FAISS index...")
-    index = faiss.read_index("kit_index.faiss")
+    index = faiss.read_index("data/kit_index.faiss")
     
     # Load metadata for analysis
-    with open("index_metadata.json") as f:
+    with open("data/index_metadata.json") as f:
         metadata = json.load(f)
     
     kit_lookup = {item["index_id"]: item for item in metadata["kit_metadata"]}
