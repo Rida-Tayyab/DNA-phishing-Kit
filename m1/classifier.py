@@ -7,16 +7,24 @@ from collections import Counter
 from embedders.embedder import build_feature_vector, normalize_vector
 from embedders.text_embedder import embed_kit_source
 
-# Load index and metadata at module level
-index = faiss.read_index("kit_index.faiss")
+# Dynamic path resolution
+def get_data_path():
+    current_file = Path(__file__)
+    # If we're in m1/ directory, go up one level to find data/
+    if current_file.parent.name == 'm1':
+        return current_file.parent.parent / "data"
+    else:
+        return Path("data")
 
-with open("index_metadata.json") as f:
+data_dir = get_data_path()
+
+# Load index and metadata at module level
+index = faiss.read_index(str(data_dir / "kit_index.faiss"))
+
+with open(data_dir / "index_metadata.json") as f:
     metadata = json.load(f)
 
-with open("data/features.json") as f:
-    features_data = json.load(f)
-
-with open("data/normalization_stats.json") as f:
+with open(data_dir / "normalization_stats.json") as f:
     norm_stats = json.load(f)
 
 kit_lookup = {item["index_id"]: item for item in metadata["kit_metadata"]}
@@ -38,6 +46,10 @@ def classify_kit(kit_root: Path, kit_manifest_entry: dict, exclude_hash: str = N
     """
     
     kit_hash = kit_manifest_entry["hash"]
+    
+    # Load features data dynamically
+    with open(data_dir / "features.json") as f:
+        features_data = json.load(f)
     
     if kit_hash not in features_data:
         raise ValueError(f"Kit hash {kit_hash} not found in features.json")

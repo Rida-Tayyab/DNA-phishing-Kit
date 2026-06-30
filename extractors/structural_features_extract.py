@@ -60,12 +60,13 @@ def extract_structural_features(kit: dict) -> dict:
         "has_telegram": kit.get("has_telegram", False),
     }
 
-with open("data/dataset_manifest.json") as f:
-    manifest = json.load(f)
+if __name__ == "__main__":
+    with open("data/dataset_manifest.json") as f:
+        manifest = json.load(f)
 
-for kit in manifest[:5]:
-    features = extract_structural_features(kit)
-    print(f"Family: {kit['family']}")
-    for k, v in features.items():
-        print(f"  {k}: {v}")
-    print()
+    for kit in manifest[:5]:
+        features = extract_structural_features(kit)
+        print(f"Family: {kit['family']}")
+        for k, v in features.items():
+            print(f"  {k}: {v}")
+        print()
