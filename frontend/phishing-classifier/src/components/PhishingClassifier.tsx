@@ -103,13 +103,18 @@ const PhishingClassifier: React.FC = () => {
         }
       );
 
+      if (!response.data || !response.data.predicted_family) {
+        throw new Error(`Unexpected response: ${JSON.stringify(response.data)}`);
+      }
+
       setResult(response.data);
       setNewKitCoordinates(generateKitCoordinates(response.data));
       setUploadState('success');
     } catch (err: any) {
       console.error('Classification error:', err);
       setError(
-        err.response?.data?.detail || 
+        err.response?.data?.detail ||
+        err.message ||
         'Failed to classify the phishing kit. Please try again.'
       );
       setUploadState('error');

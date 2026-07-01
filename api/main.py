@@ -44,7 +44,9 @@ async def classify_uploaded_kit(file: UploadFile):
         with open(zip_path, "wb") as f:
             shutil.copyfileobj(file.file, f)
 
+        logger.info("File saved, starting classification...")
         result = process_uploaded_kit(zip_path, extract_dir)
+        logger.info("Classification result: %s", result)
         return result
 
     except Exception as e:
