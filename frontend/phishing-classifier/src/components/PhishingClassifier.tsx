@@ -100,6 +100,7 @@ const PhishingClassifier: React.FC = () => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          timeout: 120000, // 2 minutes
         }
       );
 
@@ -229,7 +230,7 @@ const PhishingClassifier: React.FC = () => {
           >
             <div className="loading-spinner"></div>
             <h3>Analyzing phishing kit...</h3>
-            <p>Extracting features and running ML classification</p>
+            <p>Extracting features and running ML classification (~30s)</p>
           </motion.div>
         )}
 
