@@ -5,6 +5,8 @@ import axios from 'axios';
 import './PhishingClassifier.css';
 import ThreatLandscapeMap from './ThreatLandscapeMap';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+
 interface ClassificationResult {
   predicted_family: string;
   confidence: number;
@@ -92,7 +94,7 @@ const PhishingClassifier: React.FC = () => {
 
     try {
       const response = await axios.post<ClassificationResult>(
-        'http://127.0.0.1:8000/classify',
+        `${API_BASE}/classify`,
         formData,
         {
           headers: {

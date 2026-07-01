@@ -37,10 +37,13 @@ venv.bak/
 *.swo
 
 # Data files
-*.json
 *.csv
 *.pkl
 *.pickle
+
+# Allow required data files for deployment
+!data/*.json
+!data/*.faiss
 
 # Large model files
 *.bin
