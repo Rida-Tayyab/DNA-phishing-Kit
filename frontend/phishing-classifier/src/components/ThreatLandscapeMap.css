@@ -1,0 +1,248 @@
+.threat-landscape-container {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-top: 3rem;
+  overflow: hidden;
+}
+
+.threat-landscape-header {
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.map-icon {
+  color: #00ff88;
+}
+
+.threat-landscape-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.threat-landscape-header p {
+  margin: 0;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.accuracy-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+  color: #000;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.threat-landscape-content {
+  display: flex;
+  min-height: 600px;
+}
+
+.map-controls {
+  width: 280px;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.family-search {
+  position: relative;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.family-search svg {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.family-search input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.family-search input:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+}
+
+.family-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.family-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.family-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.family-item.active {
+  background: rgba(0, 255, 136, 0.1);
+  border-left: 3px solid #00ff88;
+}
+
+.family-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.family-name {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.family-count {
+  color: #888;
+  font-size: 0.8rem;
+  font-family: monospace;
+}
+
+.map-visualization {
+  flex: 1;
+  padding: 1rem;
+  position: relative;
+}
+
+.classification-overlay {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+}
+
+.target-icon {
+  color: #00ff88;
+}
+
+.overlay-content h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.overlay-content p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+/* Plotly overrides */
+.threat-landscape-container .js-plotly-plot {
+  background: transparent !important;
+}
+
+.threat-landscape-container .plotly {
+  background: transparent !important;
+}
+
+/* Custom scrollbar for family list */
+.family-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.family-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.family-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .threat-landscape-content {
+    flex-direction: column;
+  }
+  
+  .map-controls {
+    width: 100%;
+    min-height: auto;
+    max-height: 200px;
+  }
+  
+  .family-list {
+    max-height: 150px;
+  }
+  
+  .classification-overlay {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .threat-landscape-header {
+    padding: 1rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .threat-landscape-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .map-visualization {
+    padding: 0.5rem;
+  }
+}

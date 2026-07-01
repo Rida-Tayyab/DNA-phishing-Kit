@@ -2,16 +2,15 @@ import zipfile
 import shutil
 import hashlib
 import sys
+import json
 from pathlib import Path
 
-# Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from extractors.html_extractor import extract_html_features
 from extractors.php_extractor import extract_php_features
 from extractors.js_extractor import extract_js_features
 from extractors.structural_features_extract import extract_structural_features
-from m1.classifier import classify_kit
 
 def process_uploaded_kit(zip_path: Path, extract_dir: Path) -> dict:
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
@@ -21,24 +20,11 @@ def process_uploaded_kit(zip_path: Path, extract_dir: Path) -> dict:
     manifest_entry = build_manifest_entry(kit_root)
     features = extract_all_features(kit_root, manifest_entry)
     
-    import json
-    features_file = Path(__file__).parent.parent / "data" / "features.json"
-    with open(features_file) as f:
-        features_data = json.load(f)
+    # Import classifier here to avoid circular imports
+    from m1.classifier import classify_kit_with_features
     
-    kit_hash = manifest_entry["hash"]
-    features_data[kit_hash] = features
-    
-    with open(features_file, "w") as f:
-        json.dump(features_data, f)
-    
-    try:
-        result = classify_kit(kit_root, manifest_entry)
-        return result
-    finally:
-        del features_data[kit_hash]
-        with open(features_file, "w") as f:
-            json.dump(features_data, f)
+    result = classify_kit_with_features(kit_root, manifest_entry, features)
+    return result
 
 def find_kit_root(extract_dir: Path) -> Path:
     macosx_dir = extract_dir / "__MACOSX"
@@ -75,6 +61,7 @@ def build_manifest_entry(kit_root: Path) -> dict:
     
     return {
         "hash": kit_hash,
+        "family": "unknown",  # Uploaded kits don't have known families
         "files": all_files,
         "total_files": total_files,
         "useful_files": useful_files,

@@ -56,6 +56,29 @@ def classify_kit(kit_root: Path, kit_manifest_entry: dict, exclude_hash: str = N
     
     kit_features = features_data[kit_hash]
     
+    return _classify_with_features(kit_root, kit_manifest_entry, kit_features, exclude_hash)
+
+
+def classify_kit_with_features(kit_root: Path, kit_manifest_entry: dict, kit_features: dict, exclude_hash: str = None) -> dict:
+    """
+    Classify a phishing kit using provided features (for uploaded kits).
+    
+    Args:
+        kit_root: Path to kit directory
+        kit_manifest_entry: Kit metadata from manifest
+        kit_features: Pre-extracted feature dict
+        exclude_hash: Hash to exclude from results (usually the kit itself)
+        
+    Returns:
+        Dict with predicted_family, confidence, and top_5_neighbours
+    """
+    return _classify_with_features(kit_root, kit_manifest_entry, kit_features, exclude_hash)
+
+
+def _classify_with_features(kit_root: Path, kit_manifest_entry: dict, kit_features: dict, exclude_hash: str = None) -> dict:
+    """
+    Internal function that does the actual classification work.
+    """
     # Build raw structured vector, then normalize using saved stats
     raw_structured_vec = build_feature_vector(kit_features)
     structured_vec = normalize_vector(raw_structured_vec, col_min, col_max)
