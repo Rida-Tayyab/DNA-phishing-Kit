@@ -6,7 +6,7 @@ import shutil
 import uuid
 from pathlib import Path
 
-from upload_handler import process_uploaded_kit
+from api.upload_handler import process_uploaded_kit
 
 app = FastAPI()
 
