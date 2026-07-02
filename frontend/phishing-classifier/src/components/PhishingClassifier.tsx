@@ -100,13 +100,8 @@ const PhishingClassifier: React.FC = () => {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 120000, // 2 minutes
         }
       );
-
-      if (!response.data || !response.data.predicted_family) {
-        throw new Error(`Unexpected response: ${JSON.stringify(response.data)}`);
-      }
 
       setResult(response.data);
       setNewKitCoordinates(generateKitCoordinates(response.data));
@@ -114,8 +109,7 @@ const PhishingClassifier: React.FC = () => {
     } catch (err: any) {
       console.error('Classification error:', err);
       setError(
-        err.response?.data?.detail ||
-        err.message ||
+        err.response?.data?.detail || 
         'Failed to classify the phishing kit. Please try again.'
       );
       setUploadState('error');
@@ -230,7 +224,7 @@ const PhishingClassifier: React.FC = () => {
           >
             <div className="loading-spinner"></div>
             <h3>Analyzing phishing kit...</h3>
-            <p>Extracting features and running ML classification (~30s)</p>
+            <p>Extracting features and running ML classification</p>
           </motion.div>
         )}
 
