@@ -1,8 +1,11 @@
+import os
 import numpy as np
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# Use a fixed cache dir so Railway doesn't re-download on every cold start
+_cache_dir = os.environ.get("SENTENCE_TRANSFORMERS_HOME", "/tmp/st_cache")
+model = SentenceTransformer('all-MiniLM-L6-v2', cache_folder=_cache_dir)
 
 
 def embed_kit_source(kit_root: Path, kit_data: dict) -> np.ndarray:
