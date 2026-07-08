@@ -45,6 +45,9 @@ venv.bak/
 !data/*.json
 !data/*.faiss
 
+# Exclude large manifest (local paths, 47MB - not needed at runtime)
+data/dataset_manifest.json
+
 # Large model files
 *.bin
 *.safetensors
