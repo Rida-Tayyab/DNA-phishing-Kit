@@ -2,7 +2,7 @@
 
 A machine learning system that classifies phishing kits by their behavioral and structural "DNA" — extracting 55 structured features and 384-dimensional semantic embeddings from ZIP archives to identify kit families, detect clones, and attribute campaigns to threat actors.
 
-**Live demo:** [https://dna-phishing-84uox5iag-rida-tayyabs-projects.vercel.app](https://dna-phishing-84uox5iag-rida-tayyabs-projects.vercel.app)  
+**Live demo:** [https://dna-phishing-4axzbnew9-rida-tayyabs-projects.vercel.app](https://dna-phishing-4axzbnew9-rida-tayyabs-projects.vercel.app/))  
 **API:** [https://web-production-56949.up.railway.app](https://web-production-56949.up.railway.app)
 
 ---
