@@ -2,7 +2,7 @@
 
 A machine learning system that classifies phishing kits by their behavioral and structural "DNA" — extracting 55 structured features and 384-dimensional semantic embeddings from ZIP archives to identify kit families, detect clones, and attribute campaigns to threat actors.
 
-**Live demo:** [https://dna-phishing-4axzbnew9-rida-tayyabs-projects.vercel.app](https://dna-phishing-4axzbnew9-rida-tayyabs-projects.vercel.app/))  
+**Live demo:** [https://dna-phishing-4axzbnew9-rida-tayyabs-projects.vercel.app](https://dna-phishing-4axzbnew9-rida-tayyabs-projects.vercel.app)  
 **API:** [https://web-production-56949.up.railway.app](https://web-production-56949.up.railway.app)
 
 ---
@@ -35,7 +35,7 @@ Every kit goes through four extractors in parallel:
 
 These 55 structured features are min-max normalized using stats computed from the full training corpus (`data/normalization_stats.json`) and concatenated with a 384-dimensional semantic embedding of the kit's PHP/JS source code, produced by `all-MiniLM-L6-v2` via `sentence-transformers`.
 
-The final 439-dimensional hybrid vector is L2-normalized and searched against a FAISS flat index of 7,016 labeled kits. The predicted family is the majority vote of the 5 nearest neighbors, and confidence is that majority proportion.
+The final 439-dimensional hybrid vector is L2-normalized and searched against a FAISS flat index of 6,831 labeled kits. The predicted family is the majority vote of the 5 nearest neighbors, and confidence is that majority proportion.
 
 ### Why hybrid vectors?
 
@@ -49,7 +49,7 @@ During development, a critical bug was found and fixed: the 384-dim text embeddi
 
 ## Dataset
 
-- **7,016 phishing kits** indexed across hundreds of families
+- **6,831 phishing kits** indexed across hundreds of families
 - **421 families** where every instance is an exact clone (byte-for-byte identical feature fingerprint), totaling 1,955 instances — evidence of the real-world kit distribution/resale ecosystem
 - Top exfiltration split: 46% email (`mail()`), 44% Telegram bot API
 - Sophistication scores range 0–10, mean 4.8
@@ -94,7 +94,7 @@ The confidence score is a real signal — when the model says it's confident, it
 │   ├── build_index.py           # FAISS index builder
 │   └── run_extractor.py
 ├── data/
-│   ├── kit_index.faiss          # FAISS flat index (7,016 kits)
+│   ├── kit_index.faiss          # FAISS flat index (6,831 kits)
 │   ├── index_metadata.json      # Kit hash → family label mapping
 │   ├── normalization_stats.json # col_min/col_max for structured features
 │   ├── features.json            # Extracted features per kit
@@ -213,3 +213,19 @@ REACT_APP_API_URL=https://your-app.up.railway.app
 - **Backend:** FastAPI, uvicorn, Python 3.11
 - **Frontend:** React 19, TypeScript, plotly.js, framer-motion, Tailwind
 - **Infra:** Railway (backend), Vercel (frontend)
+
+---
+
+## Dataset credit
+
+Built on the [DynaPD dataset](https://drive.google.com/file/d/1o2Hgr3SvtcsVsMiB4gnSafMezc_4FSLa/view):
+
+```bibtex
+@inproceedings{liu2023knowledge,
+  author = {Ruofan Liu and Yun Lin and Yifan Zhang and Penn Han Lee and Jin Song Dong},
+  title = {Knowledge Expansion and Counterfactual Interaction for Reference-Based Phishing Detection},
+  booktitle = {32nd USENIX Security Symposium (USENIX Security 23)},
+  year = {2023},
+  pages = {4139--4156}
+}
+```
