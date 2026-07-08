@@ -6,7 +6,10 @@ import shutil
 import uuid
 from pathlib import Path
 
-from api.upload_handler import process_uploaded_kit
+try:
+    from api.upload_handler import process_uploaded_kit
+except ModuleNotFoundError:
+    from upload_handler import process_uploaded_kit
 
 app = FastAPI()
 
